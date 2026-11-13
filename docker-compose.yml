@@ -1,0 +1,49 @@
+services:
+  db:
+    image: postgres:16-bookworm
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-cotizador}
+      POSTGRES_USER: ${POSTGRES_USER:-cotizador}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+  app:
+    platform: linux/amd64
+    build:
+      context: .
+      args:
+        VITE_CLERK_PUBLISHABLE_KEY: ${VITE_CLERK_PUBLISHABLE_KEY:?Set a Clerk public key}
+        VITE_CLERK_PROXY_ENABLED: "false"
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-cotizador}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-cotizador}
+      PORT: "3000"
+      NODE_ENV: production
+      STATIC_DIR: ../cotizador-daas/dist/public
+      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY:?Set a Clerk secret key}
+      CLERK_PUBLISHABLE_KEY: ${CLERK_PUBLISHABLE_KEY:?Set a Clerk public key}
+      CLERK_PROXY_ENABLED: "false"
+      CLERK_AUTHORIZED_PARTIES: ${CLERK_AUTHORIZED_PARTIES:?Set allowed origins}
+      INITIAL_ADMIN_EMAIL: ${INITIAL_ADMIN_EMAIL:?Set the first admin email}
+      PROPOSAL_TEMPLATE_EMAIL_1: ${PROPOSAL_TEMPLATE_EMAIL_1:?Set the first proposal contact email}
+      PROPOSAL_TEMPLATE_EMAIL_2: ${PROPOSAL_TEMPLATE_EMAIL_2:?Set the second proposal contact email}
+      TRUST_PROXY: ${TRUST_PROXY:-}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${PORT:-3000}:3000"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+volumes:
+  postgres_data:

@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Novotechno · Cotizador DaaS"
+description = "Aplicación en español para cotizar Device as a Service, calcular cánones mensuales por referencia y administrar parámetros financieros persistidos."
+version = "1.0.0"
+id = "artifacts/cotizador-daas"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 23314
+
+[services.development]
+run = "pnpm --filter @workspace/cotizador-daas run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/cotizador-daas", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/cotizador-daas/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "23314"
+BASE_PATH = "/"

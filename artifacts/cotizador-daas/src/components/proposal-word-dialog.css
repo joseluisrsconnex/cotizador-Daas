@@ -1,0 +1,6 @@
+.proposal-dialog{border:1px solid #ddd6e8;border-radius:12px;padding:24px;width:min(520px,calc(100vw - 32px));max-height:calc(100dvh - 32px);overflow:auto;color:var(--nt-text,#261b3c)}
+.proposal-dialog::backdrop{background:rgba(29,24,48,.55)}
+.proposal-dialog h2{margin:0 0 16px;font-size:21px}
+.proposal-dialog fieldset{display:grid;gap:16px;border:0;padding:0;margin:0}
+.proposal-dialog textarea{font:inherit;padding:10px;border:1px solid #887e98;border-radius:6px;width:100%;box-sizing:border-box;resize:vertical}
+.proposal-dialog .quote-actions{justify-content:flex-end;flex-wrap:wrap;margin-top:16px}

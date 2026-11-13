@@ -1,0 +1,70 @@
+.nt-page{min-height:100dvh;background:var(--nt-background);color:var(--nt-text)}
+.nt-nav{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px clamp(16px,5vw,64px);background:var(--nt-dark)}
+.nt-nav .novotechno-logo{width:175px}
+.nt-actions{display:flex;gap:10px;flex-wrap:wrap}
+.nt-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 18px;border-radius:6px;font-weight:600;font-size:14px;text-decoration:none;border:1px solid var(--nt-primary);background:var(--nt-primary);color:#fff;cursor:pointer}
+.nt-btn:hover{background:var(--nt-primary-hover)}
+.nt-btn.ghost{background:transparent;color:var(--nt-primary)}
+.nt-btn.ghost:hover{background:var(--nt-primary-light)}
+.nt-nav .nt-btn.ghost{color:#fff;border-color:#d4bfff}
+.nt-nav .nt-btn.ghost:hover{background:#362d50}
+.nt-btn:disabled{background:#dad4e5;border-color:#dad4e5;color:#4c435b;cursor:not-allowed}
+.nt-hero{display:grid;gap:32px;padding:clamp(40px,8vw,104px) clamp(16px,5vw,64px);background:var(--nt-dark);color:#fff;grid-template-columns:1.2fr .8fr;align-items:center}
+.nt-hero h1{font-size:clamp(34px,5.5vw,68px);line-height:1.02;letter-spacing:-.03em;margin:12px 0 20px;max-width:14ch}
+.nt-hero p{color:#cbc4dc;max-width:52ch;line-height:1.6;font-size:17px;margin:0 0 28px}
+.nt-kicker{color:#d4bfff;font-size:12px;letter-spacing:.14em;font-weight:700}
+.nt-hero-card{background:#252039;border:1px solid #51465f;border-radius:10px;padding:24px;display:grid;gap:14px}
+.nt-hero-card .novotechno-logo{width:200px}
+.nt-hero-card div{display:flex;justify-content:space-between;border-top:1px solid #51465f;padding-top:12px;color:#cbc4dc;font-size:14px}
+.nt-hero-card strong{color:#fff}
+.nt-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:0;padding:56px clamp(16px,5vw,64px);max-width:1200px;margin:auto}
+.nt-steps article{padding:0 24px 0 0}
+.nt-steps b{color:var(--nt-primary);font-size:13px;letter-spacing:.1em}
+.nt-steps h2{font-size:21px;margin:8px 0}
+.nt-steps p{color:var(--nt-muted);line-height:1.6;margin:0}
+.nt-cta{margin:0 clamp(16px,5vw,64px) 56px;padding:36px;background:var(--nt-primary-light);border-left:4px solid var(--nt-primary);border-radius:6px;display:flex;justify-content:space-between;gap:16px;align-items:center;flex-wrap:wrap}
+.nt-cta h2{margin:0;font-size:24px}
+.nt-foot{padding:20px clamp(16px,5vw,64px);color:var(--nt-muted);font-size:13px;border-top:1px solid #ddd6e8}
+.nt-auth{min-height:100dvh;display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr)}
+.nt-auth-side{background:var(--nt-dark);color:#fff;padding:48px;display:flex;flex-direction:column;justify-content:space-between;gap:32px}
+.nt-auth-side .novotechno-logo{width:185px}
+.nt-auth-side h1{font-size:clamp(28px,3.5vw,44px);line-height:1.1;letter-spacing:-.02em;margin:0 0 12px}
+.nt-auth-side p{color:#cbc4dc;line-height:1.6;margin:0}
+.nt-auth-main{display:flex;align-items:center;justify-content:center;padding:32px 16px}
+.nt-wrap{width:100%;min-width:0;max-width:1100px;box-sizing:border-box;margin:auto;padding:32px clamp(16px,4vw,40px) 56px}
+.nt-wrap h1{font-size:30px;letter-spacing:-.02em;margin:0 0 6px;overflow-wrap:anywhere}
+.nt-sub{color:var(--nt-muted);margin:0 0 20px}
+.nt-search{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap}
+.nt-search input{flex:1;min-width:200px;padding:10px 12px;border:1px solid #887e98;border-radius:6px;background:#fff;color:var(--nt-text);font-size:14px}
+.nt-search input:focus{outline:none;border-color:var(--nt-primary);box-shadow:0 0 0 3px #6d31fa26}
+.nt-table-wrap{width:100%;max-width:100%;overflow-x:auto;background:#fff;border:1px solid #ddd6e8;border-radius:8px}
+.nt-table{width:100%;border-collapse:collapse;font-size:14px}
+.nt-table th{background:var(--nt-primary-light);text-align:left;padding:10px 14px;font-size:12px;color:var(--nt-muted);letter-spacing:.05em;white-space:nowrap}
+.nt-table td{padding:12px 14px;border-top:1px solid #ece8f4;white-space:nowrap}
+.nt-table td.num{font-variant-numeric:tabular-nums;font-weight:600}
+.nt-link{color:var(--nt-primary);font-weight:600;text-decoration:none;margin-right:14px}
+.nt-link:hover{color:var(--nt-primary-hover);text-decoration:underline}
+.nt-pager{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:16px;color:var(--nt-muted);font-size:13px}
+.nt-state{padding:48px 24px;text-align:center;background:#fff;border:1px dashed #887e98;border-radius:8px}
+.nt-state h2{margin:0 0 8px;font-size:20px}
+.nt-state p{color:var(--nt-muted);margin:0 0 16px}
+.nt-state.error{border-color:#b42318;background:#fdf0ef}
+.nt-skel{height:18px;border-radius:4px;background:linear-gradient(90deg,#ece8f4,#f8f7fc,#ece8f4);background-size:200% 100%;animation:ntsk 1.2s infinite linear;margin:14px}
+@keyframes ntsk{to{background-position:-200% 0}}
+.nt-meta{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:20px}
+.nt-badge{background:var(--nt-primary-light);color:var(--nt-primary-hover);padding:5px 10px;border-radius:4px;font-size:12px;font-weight:700}
+@media(max-width:800px){.nt-hero,.nt-auth{grid-template-columns:1fr}.nt-steps{grid-template-columns:1fr;gap:24px}.nt-auth-side{padding:24px}}
+@media(max-width:520px){.nt-nav .novotechno-logo{width:98px}.nt-nav .nt-btn{padding:8px 10px;font-size:12px}}
+.nt-modal-back{position:fixed;inset:0;background:rgba(29,24,48,.55);display:flex;align-items:center;justify-content:center;padding:16px;z-index:100}
+.nt-modal{background:#fff;border-radius:10px;padding:24px;max-width:460px;width:100%;box-sizing:border-box}
+.nt-modal h2{font-size:18px;margin:0 0 16px;overflow-wrap:anywhere}
+.nt-modal .nt-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.nt-btn.nt-danger{background:#b3261e;border-color:#b3261e}
+.nt-btn.nt-danger:hover{background:#8f1d17}
+.nt-check{display:inline-flex;align-items:center;gap:8px;margin:0 0 12px;font-size:14px}
+.nt-badge.deleted{background:#fde7e5;color:#8f1d17}
+.nt-linkbtn{background:none;border:0;padding:0;font:inherit;cursor:pointer;color:var(--nt-primary);text-decoration:underline;margin-right:12px}
+.nt-linkbtn.danger{color:#b3261e}
+.nt-table td .nt-link,.nt-table td .nt-linkbtn{white-space:nowrap}
+.nt-section{margin-top:28px;min-width:0}
+.nt-section h2{font-size:20px;margin:0 0 10px}

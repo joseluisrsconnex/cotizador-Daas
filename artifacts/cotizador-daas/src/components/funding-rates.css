@@ -1,0 +1,4 @@
+.funding-rate-controls { flex-wrap: wrap; align-items: flex-start; }
+.funding-rate-controls .field { flex: 1 1 240px; width: auto; max-width: 320px; }
+.funding-rate-controls .field > small { color: var(--muted-foreground); font-size: 11px; line-height: 1.5; }
+.funding-rate-controls .rate-readout { margin-top: 24px; }

@@ -1,0 +1,29 @@
+.service-events { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 12px; width: 100%; }
+.service-events .field { flex: 1 1 180px; min-width: 0; }
+.service-events input { width: 100%; }
+.scheme-switch { display: inline-flex; padding: 4px; gap: 4px; border-radius: 999px; background: var(--nt-primary-light, #f1eafe); margin: 4px 0 18px; }
+.scheme-switch button { border: 0; background: transparent; padding: 8px 18px; border-radius: 999px; font-weight: 600; color: var(--nt-muted, #595267); cursor: pointer; transition: background .2s, color .2s; }
+.scheme-switch button.active { background: var(--nt-primary, #6d31fa); color: #fbfaff; }
+.service-catalog { display: grid; gap: 8px; }
+.service-item { display: grid; grid-template-columns: 1fr auto auto; gap: 6px 16px; align-items: center; padding: 12px 14px; border: 1px solid rgba(35,28,53,.12); border-radius: 10px; background: #fdfcff; }
+.service-item.checked { border-color: var(--nt-primary, #6d31fa); box-shadow: inset 3px 0 var(--nt-primary, #6d31fa); }
+.service-check { display: flex; gap: 10px; align-items: center; cursor: pointer; }
+.service-check input { width: 17px; height: 17px; accent-color: var(--nt-primary, #6d31fa); }
+.service-name { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.mandatory-tag, .obsolete-tag { font-style: normal; font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; display: inline-flex; gap: 4px; align-items: center; background: var(--nt-primary-light, #f1eafe); color: var(--nt-primary, #6d31fa); }
+.obsolete-tag { background: #fde8e8; color: #b42318; }
+.service-unit { font-size: 12px; color: var(--nt-muted, #595267); }
+.service-cost { font-weight: 700; }
+.service-qty { grid-column: 1 / -1; max-width: 160px; }
+.service-error { grid-column: 1 / -1; margin: 0; }
+.custom-services { margin-top: 22px; display: grid; gap: 10px; }
+.custom-head { display: flex; flex-direction: column; gap: 2px; }
+.custom-head small { color: var(--nt-muted, #595267); }
+.custom-service { display: grid; grid-template-columns: 2fr 1.2fr 1fr auto auto; gap: 10px; align-items: end; padding: 12px; border: 1px dashed rgba(109,49,250,.35); border-radius: 10px; }
+.custom-service .row-validation { grid-column: 1 / -1; }
+.cs-qty { max-width: 110px; }
+@media (max-width: 767px) {
+  .service-item { grid-template-columns: 1fr auto; }
+  .custom-service { grid-template-columns: 1fr; }
+  .cs-qty { max-width: none; }
+}

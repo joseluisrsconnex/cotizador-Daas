@@ -1,0 +1,846 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: API specification
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: daas
+    description: Cotizador DaaS and administration
+paths:
+  /usuarios:
+    get:
+      operationId: getUsers
+      tags: [daas]
+      summary: List app users, administrators only
+      parameters:
+        - { name: search, in: query, schema: { type: string, maxLength: 200 } }
+        - { name: role, in: query, schema: { $ref: "#/components/schemas/UserRole" } }
+        - { name: status, in: query, schema: { type: string, enum: [active, blocked] } }
+        - { name: page, in: query, schema: { type: integer, minimum: 1, default: 1 } }
+      responses:
+        "200":
+          description: Paginated users
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UserList" }
+        "403":
+          description: Administrator required
+  /usuarios/{id}:
+    patch:
+      operationId: updateUserAccess
+      tags: [daas]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, minLength: 1 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UserAccessInput" }
+      responses:
+        "200":
+          description: Access updated and audited
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessResult" }
+        "403":
+          description: Forbidden or protected administrator
+        "409":
+          description: Last active administrator
+  /usuarios/{id}/reasignar:
+    post:
+      operationId: reassignUserQuotes
+      tags: [daas]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, minLength: 1 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UserReassignmentInput" }
+      responses:
+        "200":
+          description: All owned quotations transferred
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UserReassignmentResult" }
+        "403":
+          description: Administrator required
+  /usuarios/{id}/historial:
+    get:
+      operationId: getUserRoleHistory
+      tags: [daas]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, minLength: 1 } }
+      responses:
+        "200":
+          description: Access and ownership history
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UserRoleHistoryList" }
+        "403":
+          description: Administrator required
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+  /daas/config:
+    get:
+      operationId: getDaasConfig
+      tags: [daas]
+      summary: Get DaaS pricing parameters
+      responses:
+        "200":
+          description: Current editable pricing parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PricingConfig"
+    put:
+      operationId: updateDaasConfig
+      tags: [daas]
+      summary: Replace DaaS pricing parameters
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PricingConfigInput"
+      responses:
+        "200":
+          description: Updated pricing parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PricingConfig"
+  /daas/config/history:
+    get:
+      operationId: getPricingConfigHistory
+      tags: [daas]
+      summary: Administrative pricing change history
+      responses:
+        "200":
+          description: Recorded configuration changes, newest first
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PricingConfigHistory"
+  /daas/catalog:
+    get:
+      operationId: getQuoteCatalog
+      tags: [daas]
+      summary: Public quoting options without internal pricing margins
+      responses:
+        "200":
+          description: Asset types and service packages available for quotes
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuoteCatalog"
+  /quotes/preview:
+    post:
+      operationId: previewQuote
+      tags: [daas]
+      summary: Calculate a draft using the approved server-side parameters
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuoteDraftInput"
+      responses:
+        "200":
+          description: Calculated amounts and opaque parameter revision
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuotePreview"
+        "422":
+          description: The current server-side pricing parameters are invalid
+  /auth/me:
+    get:
+      operationId: getCurrentUser
+      tags: [daas]
+      responses:
+        "200":
+          description: Authenticated account and server-owned role
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppUser"
+  /quotes:
+    get:
+      operationId: getSavedQuotes
+      tags: [daas]
+      parameters:
+        - { name: search, in: query, schema: { type: string, maxLength: 120 } }
+        - { name: page, in: query, schema: { type: integer, minimum: 1, maximum: 1000000, default: 1 } }
+        - { name: showDeleted, in: query, schema: { type: boolean, default: false } }
+        - { name: belowTarget, in: query, schema: { type: boolean, default: false } }
+      responses:
+        "200":
+          description: Own quotes for sales users, all quotes for admins
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuoteList"
+    post:
+      operationId: createSavedQuote
+      tags: [daas]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuoteInput"
+      responses:
+        "201":
+          description: Immutable quote calculated on the server
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SavedQuote"
+        "409":
+          description: Cotización ID already belongs to a non-deleted quote
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/QuoteConflict" }
+        "422":
+          description: A selected scenario does not meet the commercial conditions
+  /quotes/{id}:
+    get:
+      operationId: getSavedQuote
+      tags: [daas]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: Quote with stored results and original parameter snapshot
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SavedQuote"
+    delete:
+      operationId: deleteSavedQuote
+      tags: [daas]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: Quote soft-deleted, with all versions preserved
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/QuoteActionResult" }
+  /quotes/{id}/restore:
+    post:
+      operationId: restoreSavedQuote
+      tags: [daas]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: Administrator restored the quote
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/QuoteActionResult" }
+        "409":
+          description: Cotización ID is in use by another active quote
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/QuoteConflict" }
+  /quotes/{id}/versions:
+    get:
+      operationId: getQuoteVersions
+      tags: [daas]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: Immutable version history
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/QuoteVersionList" }
+    post:
+      operationId: createQuoteVersion
+      tags: [daas]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/QuoteVersionInput" }
+      responses:
+        "201":
+          description: New current version; all earlier versions remain unchanged
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SavedQuote" }
+        "409":
+          description: Cotización ID conflict, stale version, or reused save attempt
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/QuoteConflict" }
+        "422":
+          description: A selected scenario does not meet the commercial conditions
+  /quotes/{id}/versions/{versionId}:
+    get:
+      operationId: getQuoteVersion
+      tags: [daas]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+        - { name: versionId, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: Read-only historical version with its original results
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SavedQuote" }
+  /quotes/{id}/versions/{versionId}/proposal-docx:
+    post:
+      operationId: generateQuoteProposal
+      tags: [daas]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+        - { name: versionId, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ProposalDetails" }
+      responses:
+        "200":
+          description: Proposal generated from the selected version's stored amounts
+          content:
+            application/vnd.openxmlformats-officedocument.wordprocessingml.document:
+              schema: { type: string, format: binary }
+        "422":
+          description: Historical version has no delivery state or a stored scenario is below minimum
+components:
+  schemas:
+    QuoteConflict:
+      type: object
+      required: [error]
+      properties:
+        error: { type: string }
+    ProposalDetails:
+      type: object
+      required: [destinatario, razonSocial, sedes]
+      properties:
+        destinatario: { type: string, minLength: 1, maxLength: 300, pattern: '\S' }
+        razonSocial: { type: string, minLength: 1, maxLength: 300, pattern: '\S' }
+        sedes: { type: string, minLength: 1, maxLength: 2000, pattern: '\S' }
+    QuoteActionResult:
+      type: object
+      required: [success]
+      properties:
+        success: { type: boolean }
+    QuoteVersionInput:
+      allOf:
+        - $ref: "#/components/schemas/QuoteInput"
+        - type: object
+          required: [baseVersionId]
+          properties:
+            baseVersionId: { type: string, format: uuid }
+    QuoteVersionSummary:
+      type: object
+      required: [id, quoteId, versionNumber, customer, createdAt, createdBy, createdByName, totalMonthlyBeforeTax]
+      properties:
+        id: { type: string, format: uuid }
+        quoteId: { type: string, format: uuid }
+        versionNumber: { type: integer }
+        customer: { type: string }
+        createdAt: { type: string, format: date-time }
+        createdBy: { type: string }
+        createdByName: { type: string }
+        createdByBlocked: { type: boolean }
+        config_snapshot_at: { type: string, format: date-time, description: Snapshot capture date for administrators only }
+        totalMonthlyBeforeTax: { type: string }
+    QuoteVersionList:
+      type: object
+      required: [items, currentVersionId]
+      properties:
+        currentVersionId: { type: string, format: uuid }
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/QuoteVersionSummary" }
+    UserRole:
+      type: string
+      enum: [comercial, gerente_comercial, admin]
+    SuccessResult:
+      type: object
+      required: [success]
+      properties:
+        success: { type: boolean }
+    UserAccessInput:
+      type: object
+      required: [action]
+      properties:
+        action: { type: string, enum: [role_change, block, unblock] }
+        role: { $ref: "#/components/schemas/UserRole" }
+    UserReassignmentInput:
+      type: object
+      required: [targetUserId]
+      properties:
+        targetUserId: { type: string, minLength: 1 }
+    UserReassignmentResult:
+      type: object
+      required: [success, transferredCount]
+      properties:
+        success: { type: boolean }
+        transferredCount: { type: integer }
+    UserAccount:
+      allOf:
+        - $ref: "#/components/schemas/AppUser"
+        - type: object
+          required: [isBlocked, createdAt, lastAccessAt, quoteCount]
+          properties:
+            isBlocked: { type: boolean }
+            createdAt: { type: string, format: date-time }
+            lastAccessAt: { type: [string, "null"], format: date-time }
+            quoteCount: { type: integer }
+    UserList:
+      type: object
+      required: [items, total, page, pageSize]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/UserAccount" } }
+        total: { type: integer }
+        page: { type: integer }
+        pageSize: { type: integer }
+    UserRoleHistoryEntry:
+      type: object
+      required: [id, userId, changedBy, changedByName, changedAt, action, previousValue, newValue]
+      properties:
+        id: { type: string }
+        userId: { type: string }
+        changedBy: { type: string }
+        changedByName: { type: string }
+        changedAt: { type: string, format: date-time }
+        action: { type: string, enum: [role_change, block, unblock, reassign] }
+        previousValue: {}
+        newValue: {}
+    UserRoleHistoryList:
+      type: object
+      required: [items]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/UserRoleHistoryEntry" } }
+    AppUser:
+      type: object
+      required: [id, email, name, role]
+      properties:
+        id: { type: string }
+        email: { type: string }
+        name: { type: string }
+        role: { $ref: "#/components/schemas/UserRole" }
+    QuoteRowInput:
+      type: object
+      required: [assetType, reference, quantity, unitCost]
+      properties:
+        assetType: { $ref: "#/components/schemas/AssetType" }
+        reference: { type: string, minLength: 1, maxLength: 300 }
+        quantity: { type: integer, minimum: 1, maximum: 9007199254740991 }
+        unitCost: { type: number, minimum: 0 }
+        warrantyExtensions:
+          type: array
+          maxItems: 5
+          items: { $ref: "#/components/schemas/WarrantyExtension" }
+    WarrantyExtension:
+      type: object
+      required: [termMonths, unitCost]
+      properties:
+        termMonths: { $ref: "#/components/schemas/TermMonths" }
+        unitCost: { type: number, minimum: 0 }
+    DeliveryStatus:
+      type: string
+      enum: [Local, CTO]
+    SavedDeliveryStatus:
+      type: string
+      enum: [Local, CTO, ""]
+    ScenarioProfitability:
+      type: object
+      required: [commercialMargin, revenue, totalCost, netProfit, netMargin, status]
+      properties:
+        commercialMargin: { type: number }
+        revenue: { type: string }
+        totalCost: { type: string }
+        monthlyFundingRate: { type: number, minimum: 0, maximum: 0.1 }
+        fundingInterest: { type: string }
+        operatingProfit: { type: string }
+        netProfit: { type: string }
+        netMargin: { type: number }
+        status: { type: string, enum: [Bajo mínimo, Bajo objetivo, En objetivo, Rentable] }
+    QuoteScenario:
+      type: object
+      required: [termMonths, results, totalMonthlyBeforeTax]
+      properties:
+        termMonths: { $ref: "#/components/schemas/TermMonths" }
+        results:
+          type: array
+          items: { $ref: "#/components/schemas/QuoteResultRow" }
+        totalMonthlyBeforeTax: { type: string }
+        profitability: { $ref: "#/components/schemas/ScenarioProfitability" }
+    QuoteResultRow:
+      type: object
+      required: [assetType, reference, quantity, canonUnitarioMensual, canonMensualTotal, canonProducto, canonPaquetePorUnidad, residual]
+      properties:
+        assetType: { $ref: "#/components/schemas/AssetType" }
+        reference: { type: string }
+        quantity: { type: integer }
+        canonUnitarioMensual: { type: string }
+        canonMensualTotal: { type: string }
+        canonProducto: { type: string }
+        canonPaquetePorUnidad: { type: string }
+        residual: { type: number }
+    QuoteDraftInput:
+      type: object
+      required: [termMonths, packageType, rows, deliveryStatus]
+      properties:
+        deliveryStatus: { $ref: "#/components/schemas/DeliveryStatus" }
+        terms:
+          type: array
+          minItems: 1
+          maxItems: 5
+          uniqueItems: true
+          items: { $ref: "#/components/schemas/TermMonths" }
+        termMonths: { $ref: "#/components/schemas/TermMonths" }
+        packageType: { $ref: "#/components/schemas/QuotePackageChoice" }
+        serviceMode: { $ref: "#/components/schemas/ServiceMode" }
+        selectedServices:
+          type: array
+          maxItems: 500
+          items: { $ref: "#/components/schemas/ServiceSelection" }
+        customServices:
+          type: array
+          maxItems: 100
+          items: { $ref: "#/components/schemas/CustomQuoteService" }
+        rows:
+          type: array
+          minItems: 1
+          items: { $ref: "#/components/schemas/QuoteRowInput" }
+    QuoteInput:
+      allOf:
+        - $ref: "#/components/schemas/QuoteDraftInput"
+        - type: object
+          required: [requestId, customer, quoteCode, expectedRevision]
+          properties:
+            requestId: { type: string, format: uuid }
+            customer: { type: string, minLength: 1, maxLength: 300 }
+            quoteCode: { type: string, minLength: 1, maxLength: 50, pattern: '\S' }
+            expectedRevision: { type: string, minLength: 64, maxLength: 64 }
+    QuotePreview:
+      type: object
+      required: [results, totalMonthlyBeforeTax, configRevision, includedServices, scenarios]
+      properties:
+        blockingErrors:
+          type: array
+          items: { type: string }
+        forecast: { type: string }
+        scenarios:
+          type: array
+          items: { $ref: "#/components/schemas/QuoteScenario" }
+        includedServices:
+          type: array
+          items: { $ref: "#/components/schemas/IncludedQuoteService" }
+        results:
+          type: array
+          items: { $ref: "#/components/schemas/QuoteResultRow" }
+        totalMonthlyBeforeTax: { type: string }
+        configRevision: { type: string }
+    QuoteCatalog:
+      type: object
+      required: [assetTypes, servicePackages, individualServices]
+      properties:
+        individualServices:
+          type: array
+          items: { $ref: "#/components/schemas/IndividualService" }
+        assetTypes:
+          type: array
+          items: { $ref: "#/components/schemas/AssetType" }
+        servicePackages:
+          type: array
+          items: { $ref: "#/components/schemas/ServicePackage" }
+    SavedQuote:
+      type: object
+      required: [id, ownerId, customer, quoteCode, createdAt, updatedAt, currentVersionId, versionId, versionNumber, createdBy, createdByName, configRevision, termMonths, packageType, rows, results, totalMonthlyBeforeTax, serviceMode, selectedServices, customServices, includedServices, terms, deliveryStatus, scenarios]
+      properties:
+        blockingErrors:
+          type: array
+          items: { type: string }
+        forecast: { type: string }
+        deliveryStatus: { $ref: "#/components/schemas/SavedDeliveryStatus" }
+        quoteCode: { type: string, maxLength: 50 }
+        proposalDetails: { $ref: "#/components/schemas/ProposalDetails" }
+        terms:
+          type: array
+          items: { $ref: "#/components/schemas/TermMonths" }
+        scenarios:
+          type: array
+          items: { $ref: "#/components/schemas/QuoteScenario" }
+        serviceMode: { $ref: "#/components/schemas/ServiceMode" }
+        selectedServices:
+          type: array
+          items: { $ref: "#/components/schemas/ServiceSelection" }
+        customServices:
+          type: array
+          items: { $ref: "#/components/schemas/CustomQuoteService" }
+        includedServices:
+          type: array
+          items: { $ref: "#/components/schemas/IncludedQuoteService" }
+        id: { type: string, format: uuid }
+        ownerId: { type: string }
+        currentVersionId: { type: string, format: uuid }
+        versionId: { type: string, format: uuid }
+        versionNumber: { type: integer, minimum: 1 }
+        createdBy: { type: string }
+        createdByName: { type: string }
+        createdByBlocked: { type: boolean }
+        updatedAt: { type: string, format: date-time }
+        configRevision: { type: string }
+        deletedAt: { type: string, format: date-time, nullable: true }
+        deletedBy: { type: string, nullable: true }
+        customer: { type: string }
+        createdAt: { type: string, format: date-time }
+        termMonths: { $ref: "#/components/schemas/TermMonths" }
+        packageType: { $ref: "#/components/schemas/QuotePackageChoice" }
+        rows:
+          type: array
+          items: { $ref: "#/components/schemas/QuoteRowInput" }
+        results:
+          type: array
+          items: { $ref: "#/components/schemas/QuoteResultRow" }
+        totalMonthlyBeforeTax: { type: string }
+        config_snapshot_at:
+          type: string
+          format: date-time
+          description: Snapshot capture date, returned only to administrators
+    PricingConfigHistory:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            required: [id, appliedAt, reason]
+            properties:
+              id: { type: string }
+              appliedAt: { type: string, format: date-time }
+              reason: { type: string }
+    QuoteList:
+      type: object
+      required: [items, total, page, pageSize]
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/SavedQuote" }
+        total: { type: integer }
+        page: { type: integer }
+        pageSize: { type: integer }
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+    AssetType:
+      type: string
+      enum: [Laptop, Desktop, AIO, Equipo Apple, Movilidad, Infraestructura, Impresión, Accesorios, HW Seguridad, Equipos POS, Licenciamiento]
+    TermMonths:
+      type: integer
+      enum: [12, 24, 36, 48, 60]
+    AssetSpareBase:
+      type: object
+      properties:
+        assetType:
+          $ref: "#/components/schemas/AssetType"
+        units:
+          type: integer
+          minimum: 1
+      required: [assetType, units]
+    ResidualAssetValue:
+      type: object
+      properties:
+        assetType:
+          $ref: "#/components/schemas/AssetType"
+        fraction:
+          type: number
+          minimum: 0
+          maximum: 1
+      required: [assetType, fraction]
+    TermResidual:
+      type: object
+      properties:
+        termMonths:
+          $ref: "#/components/schemas/TermMonths"
+        assets:
+          type: array
+          items:
+            $ref: "#/components/schemas/ResidualAssetValue"
+      required: [termMonths, assets]
+    PeriodMargin:
+      type: object
+      properties:
+        termMonths:
+          $ref: "#/components/schemas/TermMonths"
+        target: { type: number, minimum: 0, maximum: 1 }
+        minimum: { type: number, minimum: 0, maximum: 1 }
+        profitable: { type: number, minimum: 0, maximum: 1 }
+      required: [termMonths, target, minimum, profitable]
+    IndividualService:
+      type: object
+      required: [id, name, unitCost, unit, mandatory, active]
+      properties:
+        id: { type: string, minLength: 1, maxLength: 100 }
+        name: { type: string, minLength: 1, maxLength: 200 }
+        unitCost: { type: number, minimum: 0 }
+        unit: { type: string, enum: [Por equipo, Por perfil, Por evento, Por año, Por equipo saliente, Por equipo por evento] }
+        mandatory: { type: boolean }
+        active: { type: boolean }
+    ServicePackageType:
+      type: string
+      enum: [Básico, Intermedio, Premium]
+    QuotePackageChoice:
+      type: string
+      nullable: true
+      enum: [Básico, Intermedio, Premium, null]
+    ServiceMode:
+      type: string
+      enum: [Paquete, Servicios individuales]
+    ServiceSelection:
+      type: object
+      required: [id]
+      properties:
+        id: { type: string, minLength: 1, maxLength: 100 }
+        quantity: { type: integer, minimum: 1, maximum: 9007199254740991 }
+        events:
+          type: array
+          maxItems: 5
+          items: { $ref: "#/components/schemas/ServiceEvents" }
+    ServiceEvents:
+      type: object
+      required: [termMonths, quantity]
+      properties:
+        termMonths: { $ref: "#/components/schemas/TermMonths" }
+        quantity: { type: integer, minimum: 1, maximum: 9007199254740991 }
+    CustomQuoteService:
+      type: object
+      required: [id, name, unitCost, unit]
+      properties:
+        id: { type: string, minLength: 1, maxLength: 100 }
+        name: { type: string, minLength: 1, maxLength: 200 }
+        unitCost: { type: number, minimum: 0, exclusiveMinimum: true }
+        unit: { type: string, enum: [Por equipo, Por perfil, Por evento, Por año, Por equipo saliente, Por equipo por evento] }
+        quantity: { type: integer, minimum: 1, maximum: 9007199254740991 }
+        events:
+          type: array
+          maxItems: 5
+          items: { $ref: "#/components/schemas/ServiceEvents" }
+    IncludedQuoteService:
+      type: object
+      required: [id, name, unitCost, unit]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        unitCost: { type: number }
+        unit: { type: string, enum: [Por equipo, Por perfil, Por evento, Por año, Por equipo saliente, Por equipo por evento] }
+        quantity: { type: integer }
+        events:
+          type: array
+          items: { $ref: "#/components/schemas/ServiceEvents" }
+    ServicePackage:
+      type: object
+      properties:
+        packageType:
+          $ref: "#/components/schemas/ServicePackageType"
+        unitCost:
+          type: number
+          minimum: 0
+        detail:
+          type: string
+          minLength: 1
+      required: [packageType, unitCost, detail]
+    ProfitAndLoss:
+      type: object
+      required: [ica, maintenance, insurance, badDebt, incomeTax]
+      properties:
+        ica: { type: number, minimum: 0, maximum: 1 }
+        maintenance: { type: number, minimum: 0, maximum: 1 }
+        insurance: { type: number, minimum: 0, maximum: 1 }
+        badDebt: { type: number, minimum: 0, maximum: 1 }
+        incomeTax: { type: number, minimum: 0, maximum: 1 }
+    PricingConfig:
+      type: object
+      properties:
+        commercialMargin: { type: number, minimum: 0, maximum: 0.5 }
+        profitAndLoss: { $ref: "#/components/schemas/ProfitAndLoss" }
+        monthlyFundingRate: { type: number, minimum: 0, maximum: 0.1 }
+        monthlyPlacementRate:
+          type: number
+          minimum: 0
+          maximum: 1
+        spareBases:
+          type: array
+          items:
+            $ref: "#/components/schemas/AssetSpareBase"
+        residuals:
+          type: array
+          items:
+            $ref: "#/components/schemas/TermResidual"
+        margins:
+          type: array
+          items:
+            $ref: "#/components/schemas/PeriodMargin"
+        individualServices:
+          type: array
+          items: { $ref: "#/components/schemas/IndividualService" }
+        servicePackages:
+          type: array
+          items:
+            $ref: "#/components/schemas/ServicePackage"
+      required: [commercialMargin, profitAndLoss, monthlyFundingRate, monthlyPlacementRate, spareBases, residuals, margins, servicePackages, individualServices]
+    PricingConfigInput:
+      type: object
+      properties:
+        commercialMargin: { type: number, minimum: 0, maximum: 0.5 }
+        profitAndLoss: { $ref: "#/components/schemas/ProfitAndLoss" }
+        monthlyFundingRate: { type: number, minimum: 0, maximum: 0.1 }
+        monthlyPlacementRate:
+          type: number
+          minimum: 0
+          maximum: 1
+        spareBases:
+          type: array
+          items:
+            $ref: "#/components/schemas/AssetSpareBase"
+        residuals:
+          type: array
+          items:
+            $ref: "#/components/schemas/TermResidual"
+        margins:
+          type: array
+          items:
+            $ref: "#/components/schemas/PeriodMargin"
+        individualServices:
+          type: array
+          items: { $ref: "#/components/schemas/IndividualService" }
+        servicePackages:
+          type: array
+          items:
+            $ref: "#/components/schemas/ServicePackage"
+      required: [commercialMargin, profitAndLoss, monthlyFundingRate, monthlyPlacementRate, spareBases, residuals, margins, servicePackages, individualServices]
+
